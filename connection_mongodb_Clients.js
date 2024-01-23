@@ -8,14 +8,15 @@ const client = new MongoClient(url, {
     }
   });
 const dbName = "Fablab";
-const collectionName = "Client";
+const collectionName_Client= "Client";
+
 async function getAllFromClient_(username) {
     try {
         // Connecte le client au serveur (facultatif à partir de la v4.7)
         await client.connect();
         
         const database = client.db(dbName);
-        const collection = database.collection(collectionName);
+        const collection = database.collection(collectionName_Client);
         
         // Recherche le document correspondant à l'utilisateur
         const query = { username: username };
@@ -110,7 +111,7 @@ async function createClient(Client) {
         if(await verifySolo(Client.username)){
             await client.connect();
             const db = client.db(dbName);
-            const collection = db.collection(collectionName);
+            const collection = db.collection(collectionName_Client);
             await collection.insertOne(Client);
             console.log("Client ajouté avec succès");
         }
@@ -132,7 +133,7 @@ async function modifClient(username, Client){
     try{
         await client.connect();
         const db = client.db(dbName);
-        const collection = db.collection(collectionName)
+        const collection = db.collection(collectionName_Client)
         const query = {username: username};
         const options = {$set: Client};
         const cursor = collection.find(query, options);
@@ -156,7 +157,7 @@ async function deleteClient(username) {
         await client.db(dbName).command({ ping: 1 });
         
         const db = client.db(dbName);
-        const collection = db.collection(collectionName);
+        const collection = db.collection(collectionName_Client);
         const query = { username: username };
         const options = {};
         
@@ -179,7 +180,7 @@ async function getAllClient(){
     try{
         await client.connect();
         const db = client.db(dbName);
-        const collection = db.collection(collectionName)
+        const collection = db.collection(collectionName_Client)
         const query = {};
         const options = {};
         const cursor = collection.find(query, options);
