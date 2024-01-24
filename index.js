@@ -340,7 +340,7 @@ http.listen(8080, privateIPAddress,() => {
     //recupere les donnée de admin via getallClient
     //recupere la promise d'admin
 
-    /*
+    
 
     
     connect_client.verifyPassword("admin", "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb");  
@@ -387,6 +387,6 @@ http.listen(8080, privateIPAddress,() => {
         res.status(500).json({ error: 'Erreur lors de la récupération des données' });
       });
 
-    */
+    
 });
 
