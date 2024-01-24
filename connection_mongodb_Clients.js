@@ -1,6 +1,8 @@
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const url = "mongodb+srv://romainpietri:4vZ82ApZxpsG4mwz@projectfablab.n96bi5x.mongodb.net/?retryWrites=true&w=majority"
 const client = new MongoClient(url, {
+    connectTimeoutMS: 500000,
+  serverSelectionTimeoutMS: 500000,
     serverApi: {
       version: ServerApiVersion.v1,
       strict: true,
@@ -207,3 +209,4 @@ exports.modifClient = modifClient;
 exports.getAllFromClient = getAllFromClient;
 exports.deleteClient = deleteClient;
 exports.getAllClient = getAllClient;
+exports.verifySolo = verifySolo;

@@ -5,6 +5,7 @@ const http = require('http').Server(app);
 const bodyParser = require('body-parser');
 const connect_client = require('./connection_mongodb_Clients.js');
 const connect_stock = require('./connection_mongodb_Stocks.js');
+const os = require('os');
 
 
 
@@ -13,8 +14,15 @@ const connect_stock = require('./connection_mongodb_Stocks.js');
 app.use(bodyParser.json());
 //on fait une API 
 app.get('/', (req, res) => {
+  console.log("get /");
     res.sendStatus(200);//renvoie le code 200 qui signifie que tout va bien
 });
+app.post('/', (req, res) => {
+  console.log("post /");
+  res.sendStatus(200);//renvoie le code 200 qui signifie que tout va bien
+}
+);
+
 
 app.post('/login', (req, res) => {
     //console.log(req.body);
@@ -35,15 +43,26 @@ app.post('/login', (req, res) => {
 
 app.post('/createAccompt', (req, res) => {
   //console.log(req.body);
-  connect_client.createClient(req.body)
-    .then((data) => {
-      if (data) {
-        res.sendStatus(200);
-      } else {
-        res.sendStatus(401);
-      }
+  connect_client.verifySolo(req.body.username).then((data) => {
+    if(data){
+      connect_client.createClient(req.body)
+        .then((data) => {
+          if (data) {
+            res.sendStatus(200);
+          } else {
+            res.sendStatus(401);
+          }
+        }
+        )
+        .catch((error) => {
+          console.error('Erreur lors de la récupération des données :', error);
+          res.status(500).json({ error: 'Erreur lors de la récupération des données' });
+        });
     }
-    )
+    else{
+      res.sendStatus(402);
+    }
+  })
     .catch((error) => {
       console.error('Erreur lors de la récupération des données :', error);
       res.status(500).json({ error: 'Erreur lors de la récupération des données' });
@@ -296,19 +315,32 @@ app.post('/modifReservation', (req, res) => {
 }
 );
 
+// Function to retrieve the private IP address
+const getPrivateIPAddress = () => {
+  const interfaces = os.networkInterfaces();
+  for (const interfaceName in interfaces) {
+    const interface = interfaces[interfaceName];
+    for (const address of interface) {
+      if (address.family === 'IPv4' && !address.internal) {
+        return address.address;
+      }
+    }
+  }
+  return null;
+};
+
+// Get the private IP address
+const privateIPAddress = getPrivateIPAddress();
+
+console.log(privateIPAddress)
 
 
-
-
-
-
-
-http.listen(8080, "127.0.0.1",() => {
-    console.log("\x1b[34m%s\x1b[0m",'Serveur lancé sur le port 4300 \u{1F525}');
+http.listen(8080, privateIPAddress,() => {
+    console.log("\x1b[34m%s\x1b[0m",'Serveur lancé sur le port 8080 \u{1F525}');
     //recupere les donnée de admin via getallClient
     //recupere la promise d'admin
 
-
+    /*
 
     
     connect_client.verifyPassword("admin", "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb");  
@@ -355,10 +387,6 @@ http.listen(8080, "127.0.0.1",() => {
         res.status(500).json({ error: 'Erreur lors de la récupération des données' });
       });
 
-
-
-
-
-
+    */
 });
 
