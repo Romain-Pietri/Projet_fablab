@@ -145,7 +145,7 @@ async function getAllReservationClient_(username) {
         const documents = await collection.find(query, options).toArray();
         if (documents.length === 0) {
             console.log("Aucun document trouvé!");
-            return false;
+            return {};
         }
         return documents;
     }
@@ -167,7 +167,7 @@ async function verifyReservation(timestampdebut, timestampfin, idmachine){
     try{
         var Reservation = await getAllReservation_();
         var i = 0;
-        for( i=0; i<Reservation.length();i++){
+        for( i=0; i<Reservation.length;i++){
             if(Reservation[i].idmachine === idmachine){
                 //si la date de début est comprise entre le début et la fin d'une réservation
                 if(timestampdebut >= Reservation[i].timestampdebut && timestampdebut <= Reservation[i].timestampfin){
@@ -187,6 +187,7 @@ async function verifyReservation(timestampdebut, timestampfin, idmachine){
         return false;
     }
 }
+
 
 
 

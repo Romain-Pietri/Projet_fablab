@@ -5,7 +5,7 @@ http = require('http').createServer(app);
 const bodyParser = require('body-parser');
 const connect_client = require('./connection_mongodb_Clients.js');
 const connect_stock = require('./connection_mongodb_Stocks.js');
-//const connect_reservation = require('./connection_mongodb_Reservation.js');
+const connect_reservation = require('./connection_mongodb_Reservation.js');
 
 const os = require('os');
 
@@ -294,6 +294,7 @@ app.post('/getOneReservation', (req, res) => {
 }
 );
 app.post('/createReservation', (req, res) => {
+  console.log("createReservation")
   connect_reservation.createReservation(req.body)
     .then((data) => {
       if (data) {
@@ -395,9 +396,10 @@ app.post('/augmenteQuantity',(req,res) =>{
 app.post('/getAllReservationFromClient', (req, res) => {
   //console.log(req.body);
   console.log('getAllReservationFromClient')
-  connect_reservation.getAllReservationFromClient(req.body.username)
+  connect_reservation.getAllReservationClient(req.body.username)
     .then((data) => {
       if (data) {
+        console.log(data)
         res.send(data);
       } else {
         res.sendStatus(401);
@@ -412,10 +414,14 @@ app.post('/getAllReservationFromClient', (req, res) => {
 );
 app.post('/verifyReservation', (req, res) => {
   //console.log(req.body);
+  console.log("verifyReservation")
+  if(req.body.timestampdebut=="" || req.body.timestampfin=="" || req.body.idmachine==""){
+    res.sendStatus(402);
+  }
   connect_reservation.verifyReservation(req.body.timestampdebut, req.body.timestampfin, req.body.idmachine)
     .then((data) => {
       if (data) {
-        res.send(data);
+        res.send(200);
       }
       else {
         res.sendStatus(401);
