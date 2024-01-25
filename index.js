@@ -1,7 +1,22 @@
 //cree un projet node classic
 const express = require('express');
 const app = express();
-http = require('http').createServer(app);
+const fs = require('fs');
+
+const options = {
+  key: fs.readFileSync('key.pem'),
+  cert: fs.readFileSync('cert.pem'),
+  ciphers: 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256',
+  minVersion: 'TLSv1.2', // Version minimale de TLS
+  maxVersion: 'TLSv1.2'  // Version maximale de TLS
+};
+
+const https = require('https');
+const server = https.createServer(options, app);
+
+// app.get('/', (req, res) => {
+//   res.send('Hello World!');
+// });
 const bodyParser = require('body-parser');
 const connect_client = require('./connection_mongodb_Clients.js');
 const connect_stock = require('./connection_mongodb_Stocks.js');
@@ -454,10 +469,17 @@ const privateIPAddress = getPrivateIPAddress();
 console.log("\x1b[34m%s\x1b[0m",privateIPAddress )
 
 
-http.listen(8080, privateIPAddress,() => {
-    console.log("\x1b[34m%s\x1b[0m",'Serveur lancé sur le port 8080 \u{1F525}');
-    //recupere les donnée de admin via getallClient
-    //recupere la promise d'admin
-    connect_client.pingToBDD();    
+// https.listen(443, privateIPAddress,() => {
+//     console.log("\x1b[34m%s\x1b[0m",'Serveur lancé sur le port 8080 \u{1F525}');
+//     //recupere les donnée de admin via getallClient
+//     //recupere la promise d'admin
+//     connect_client.pingToBDD();    
+// });
+
+server.listen(443, () => {
+  console.log('Serveur Express écoutant sur le port 443');
+  connect_client.pingToBDD();
+}).on('error', (e) => {
+  console.error('Erreur au démarrage du serveur:', e);
 });
 
