@@ -10,6 +10,56 @@ const client = new MongoClient(url, {
 const dbName = "Fablab";
 const collectionName = "Stocks";
 
+async function createID_(type){
+    var id = 0;
+    switch(type){
+        case "consommable": id=2000;
+        break;
+        case "machine": id=1000;
+        break;
+        case "empruntable" : id = 3000;
+        break;
+    }
+    try{
+        await client.connect();
+        const database = client.db(dbName);
+        const collection = database.collection(collectionName);
+        const query = { type: type };
+        const options = {};
+        const documents = await collection.find(query, options).toArray();
+        if (documents.length === 0) {
+            console.log("Aucun document trouvé!");
+            return id;
+        }
+        else{
+            var max = 0;
+            documents.forEach(element => {
+                //prend element.id en int
+                var id = parseInt(element.id);
+                if(id>max){
+                    max = id;
+                }
+
+            });
+            return String(max+1);
+        }
+    }
+    catch(error){
+        console.log("Erreur :", error);
+        throw error;
+    }
+}
+function createID(type){
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(createID_(type));
+        }, 1000);
+    }
+    );
+}
+
+
+
 async function getAllStocks_() {
     try{
         await client.connect();
@@ -30,7 +80,7 @@ async function getAllStocks_() {
     }
 }
 
-function getAllStocks(){
+function getAllStock(){
     return new Promise((resolve, reject) => {
         setTimeout(() => {
             resolve(getAllStocks_());
@@ -168,7 +218,7 @@ async function modifyNumberStock_(id, number) {
         await client.connect();
         const database = client.db(dbName);
         const collection = database.collection(collectionName);
-        const result = await collection.updateOne({ id: id }, { $inc: { "nb": number } });
+        const result = await collection.updateOne({ id: id }, { $inc: { "quantite": number } });
         console.log(`${result.modifiedCount} document(s) a/ont été modifié(s)`);
         return result;
     }
@@ -185,4 +235,84 @@ function modifyNumberStock(id, number){
     });
 }
 
-module.exports = {getAllStocks, getOneStock, createStock, deleteStock, modifStock, getAllFromStock, modifyNumberStock};
+async function reduceQuantity(id, number){
+    try{
+        await client.connect();
+        const database = client.db(dbName);
+        const collection = database.collection(collectionName);
+        //fait la query 
+        const query = { id: id };
+        const options = {};
+        //trouve le document
+        const documents = await collection.find(query, options).toArray();
+        //si le document n'existe pas
+        if (documents.length === 0) {
+            console.log("Aucun document trouvé!");
+            return false;
+        }
+        //si le document existe
+        else{
+            //prend le document
+            var doc = documents[0];
+            //prend la quantité
+            var quantite = doc.quantite;
+            //si la quantité est suffisante
+            if(quantite>=parseInt(number)){
+                //modifie la quantité dans la base de données
+                var newquantity = parseInt(quantite)-parseInt(number);
+                console.log(newquantity)
+                var result = await collection.updateOne({id: id}, {$set: {"quantite": newquantity}});
+                console.log(`${result.modifiedCount} document(s) a/ont été modifié(s)`);
+                return result;
+            }
+            //si la quantité n'est pas suffisante
+            else{
+                console.log("Quantité insuffisante");
+                return false;
+            }
+        }
+        
+    }
+    catch(error){
+        console.log("Erreur :", error);
+        throw error;
+    }
+}
+
+async function augmenteQuantity(id, number){
+    try{
+        await client.connect();
+        const database = client.db(dbName);
+        const collection = database.collection(collectionName);
+        //fait la query 
+        const query = { id: id };
+        const options = {};
+        //trouve le document
+        const documents = await collection.find(query, options).toArray();
+        //si le document n'existe pas
+        if (documents.length === 0) {
+            console.log("Aucun document trouvé!");
+            return false;
+        }
+        //si le document existe
+        else{
+            //prend le document
+            var doc = documents[0];
+            //prend la quantité
+            var quantite = doc.quantite;
+            //modifie la quantité dans la base de données
+            var newquantity = parseInt(quantite)+parseInt(number);
+            console.log(newquantity)
+            var result = await collection.updateOne({id: id}, {$set: {"quantite": newquantity}});
+            console.log(`${result.modifiedCount} document(s) a/ont été modifié(s)`);
+            return result;
+        }
+        
+    }
+    catch(error){
+        console.log("Erreur :", error);
+        throw error;
+    }
+}
+
+module.exports = {getAllStock, getOneStock, createStock, deleteStock, modifStock, getAllFromStock, modifyNumberStock, createID,reduceQuantity, augmenteQuantity};

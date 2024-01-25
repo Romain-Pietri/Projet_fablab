@@ -5,20 +5,26 @@ const http = require('http').Server(app);
 const bodyParser = require('body-parser');
 const connect_client = require('./connection_mongodb_Clients.js');
 const connect_stock = require('./connection_mongodb_Stocks.js');
+//const connect_reservation = require('./connection_mongodb_Reservation.js');
+
 const os = require('os');
 
 
 
-//cree la route / qui renvoie main.html
 
-app.use(bodyParser.json());
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
+
+app.use(express.json());
 //on fait une API 
 app.get('/', (req, res) => {
-  console.log("get /");
     res.sendStatus(200);//renvoie le code 200 qui signifie que tout va bien
 });
 app.post('/', (req, res) => {
-  console.log("post /");
   res.sendStatus(200);//renvoie le code 200 qui signifie que tout va bien
 }
 );
@@ -29,13 +35,28 @@ app.post('/login', (req, res) => {
     connect_client.verifyPassword(req.body.username, req.body.mdp)
       .then((data) => {
         if (data) {
-          res.sendStatus(200);
+          connect_client.getAllFromClient(req.body.username).then((data2) => {
+            if(data2){
+              if(data2.is_admin){
+                res.sendStatus(201);
+              }
+              else res.sendStatus(200);
+            }
+            else{
+              res.sendStatus(401);
+            }
+          }
+          )
+          .catch((error) => {
+            console.error('Erreur lors de la récupération des données dans le is_admin :', error);
+            res.status(500);
+          });
         } else {
           res.sendStatus(401);
         }
       })
       .catch((error) => {
-        console.error('Erreur lors de la récupération des données :', error);
+        console.error('Erreur lors de la récupération des données dans verify password:', error);
         res.status(500).json({ error: 'Erreur lors de la récupération des données' });
       });
 }
@@ -123,6 +144,7 @@ app.post('/getAllClient', (req, res) => {
 );
 app.post('/getAllFromClient', (req, res) => {
   //console.log(req.body);
+  console.log("getAllFromClient")
   connect_client.getAllFromClient(req.body.username)
     .then((data) => {
       if (data) {
@@ -141,9 +163,12 @@ app.post('/getAllFromClient', (req, res) => {
 
 app.post('/getAllStock', (req, res) => {
   //console.log(req.body);
+  console.log("getAllStock")
   connect_stock.getAllStock()
     .then((data) => {
+      console.log(data)
       if (data) {
+        
         res.send(data);
       } else {
         res.sendStatus(401);
@@ -176,21 +201,32 @@ app.post('/getOneStock', (req, res) => {
 );
 app.post('/createStock', (req, res) => {
   //console.log(req.body);
-  connect_stock.createStock(req.body)
-    .then((data) => {
-      if (data) {
-        res.sendStatus(200);
-      } else {
-        res.sendStatus(401);
-      }
+  console.log("createStock")
+  var ob= req.body;
+
+  connect_stock.createID(ob.type).then((data) => {
+    if(data){
+      ob.id=data;
+      connect_stock.createStock(ob)
+        .then((data) => {
+          if (data) {
+            res.sendStatus(200);
+          } else {
+            res.sendStatus(401);
+          }
+        }
+        )
+        .catch((error) => {
+          console.error('Erreur lors de la récupération des données :', error);
+          res.status(500).json({ error: 'Erreur lors de la récupération des données' });
+        });
     }
-    )
-    .catch((error) => {
-      console.error('Erreur lors de la récupération des données :', error);
-      res.status(500).json({ error: 'Erreur lors de la récupération des données' });
-    });
-}
+    else{
+      res.sendStatus(402);
+    }
+  }
 );
+});
 app.post('/deleteStock', (req, res) => {
   //console.log(req.body);  
   connect_stock.deleteStock(req.body.id)
@@ -261,7 +297,6 @@ app.post('/getOneReservation', (req, res) => {
 }
 );
 app.post('/createReservation', (req, res) => {
-  //console.log(req.body);
   connect_reservation.createReservation(req.body)
     .then((data) => {
       if (data) {
@@ -314,6 +349,44 @@ app.post('/modifReservation', (req, res) => {
     });
 }
 );
+app.post('/reduceQuantity',(req,res) =>{
+  console.log("reduceQuantity");
+  connect_stock.reduceQuantity(req.body.id, req.body.quantite)
+    .then((data) => {
+      if (data) {
+        res.sendStatus(200);
+      }
+      else {
+        res.sendStatus(401);
+      }
+    }
+    )
+    .catch((error) => {
+      console.log("Erreur :", error);
+      res.status(500).json({ error: 'Erreur lors de la récupération des données' });
+    });
+
+});
+app.post('/augmenteQuantity',(req,res) =>{
+  console.log(req.body);
+  connect_stock.augmenteQuantity(req.body.id, req.body.quantite)
+    .then((data) => {
+      if (data) {
+        res.sendStatus(200);
+      }
+      else {
+        res.sendStatus(401);
+      }
+    }
+    )
+    .catch((error) => {
+      console.log("Erreur :", error);
+      res.status(500).json({ error: 'Erreur lors de la récupération des données' });
+    });
+
+}
+);
+
 
 // Function to retrieve the private IP address
 const getPrivateIPAddress = () => {
@@ -332,61 +405,13 @@ const getPrivateIPAddress = () => {
 // Get the private IP address
 const privateIPAddress = getPrivateIPAddress();
 
-console.log(privateIPAddress)
+console.log("\x1b[34m%s\x1b[0m",privateIPAddress )
 
 
 http.listen(8080, privateIPAddress,() => {
     console.log("\x1b[34m%s\x1b[0m",'Serveur lancé sur le port 8080 \u{1F525}');
     //recupere les donnée de admin via getallClient
     //recupere la promise d'admin
-
-    
-
-    
-    connect_client.verifyPassword("admin", "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb");  
-    connect_client.verifyPassword("admin", "mdp");
-
-    connect_client.modifClient("JED", { "nom": "Dufort",
-    "prenom": "Jean-Eude",
-    "username": "JED",
-    "mdp": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
-    "email": " Jean-eude@oui.com",
-    "id": 2,
-    "is_admin": false});
-
-    connect_client.createClient({
-      "nom": "Dufort",
-      "prenom": "Jean-Eude",
-      "username": "JED2",
-      "mdp": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
-      "email": " Jean-eude@oui.com",
-      "id": 3,
-      "is_admin": false
-    });
-
-    connect_client.getAllClient()
-      .then((data) => {
-        console.log(data,"test get all client");
-      })
-      .catch((error) => {
-        console.error('Erreur lors de la récupération des données :', error);
-        res.status(500).json({ error: 'Erreur lors de la récupération des données' });
-      });
-    connect_client.deleteClient("JED2");
-    connect_client.getAllFromClient("JED2").then((data) => {
-      console.log(data,"test get all client");
-    })
-    connect_client.getAllFromClient("admin");
-    
-    connect_client.getAllClient()
-      .then((data) => {
-        console.log(data,"test get all client");
-      })
-      .catch((error) => {
-        console.error('Erreur lors de la récupération des données :', error);
-        res.status(500).json({ error: 'Erreur lors de la récupération des données' });
-      });
-
-    
+    connect_client.pingToBDD();    
 });
 

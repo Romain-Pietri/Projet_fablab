@@ -1,21 +1,38 @@
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const url = "mongodb+srv://romainpietri:4vZ82ApZxpsG4mwz@projectfablab.n96bi5x.mongodb.net/?retryWrites=true&w=majority"
-const client = new MongoClient(url, {
-    connectTimeoutMS: 500000,
-  serverSelectionTimeoutMS: 500000,
-    serverApi: {
-      version: ServerApiVersion.v1,
-      strict: true,
-      deprecationErrors: true,
-    }
-  });
+const client = new MongoClient(url);
+
 const dbName = "Fablab";
 const collectionName_Client= "Client";
+
+async function pingToBDD() {
+    const start = Date.now();
+
+  try {
+    
+    await client.connect();
+
+    await client.db(dbName).command({ ping: 1 });
+
+
+    const end = Date.now();
+    const delay = end - start;
+    
+    console.log(`Ping réussi ! Delay : ${delay} ms`);
+  } catch (error) {
+    console.error('Erreur lors du ping de la base de données :', error);
+  }
+}
+
+
+
 
 async function getAllFromClient_(username) {
     try {
         // Connecte le client au serveur (facultatif à partir de la v4.7)
+        
         await client.connect();
+        
         
         const database = client.db(dbName);
         const collection = database.collection(collectionName_Client);
@@ -53,8 +70,11 @@ function getAllFromClient(username){
 }
 async function verifyPassword_(username, password){
     
+    
     try{
+        
         const userDocument = await getAllFromClient(username);
+        
         if(userDocument){
             if(userDocument.mdp === password){
                 console.log("Connection réussie");
@@ -76,8 +96,11 @@ async function verifyPassword_(username, password){
     }
 }
 function verifyPassword(username,password){
+
     return new Promise((resolve, reject) => {
+
         setTimeout(() => {
+
             resolve(verifyPassword_(username,password));
         }, 1000);
     });
@@ -116,13 +139,16 @@ async function createClient(Client) {
             const collection = db.collection(collectionName_Client);
             await collection.insertOne(Client);
             console.log("Client ajouté avec succès");
+            return true;
         }
         else{
             console.log("Client déjà existant");
+            return false;
         }
     } catch (e) {
         console.log(e);
         console.log("Error create client");
+        return false;
     } 
     finally {
         
@@ -142,10 +168,12 @@ async function modifClient(username, Client){
         //trouve le client a modifier
         const result = await collection.updateOne(query, options);
         console.log("Client modifié avec succès");
+        return true
         
     }
     catch{
         console.log("Error modif client");
+        return false;
     }
     finally{
         
@@ -210,3 +238,4 @@ exports.getAllFromClient = getAllFromClient;
 exports.deleteClient = deleteClient;
 exports.getAllClient = getAllClient;
 exports.verifySolo = verifySolo;
+exports.pingToBDD = pingToBDD;
