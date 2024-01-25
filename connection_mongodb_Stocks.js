@@ -46,7 +46,7 @@ async function createID_(type){
     }
     catch(error){
         console.log("Erreur :", error);
-        throw error;
+        return false;
     }
 }
 function createID(type){
@@ -57,9 +57,6 @@ function createID(type){
     }
     );
 }
-
-
-
 async function getAllStocks_() {
     try{
         await client.connect();

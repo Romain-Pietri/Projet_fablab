@@ -135,6 +135,58 @@ function modifReservation(id, data){
     });
 }
 
+async function getAllReservationClient_(username) {
+    try{
+        await client.connect();
+        const database = client.db(dbName);
+        const collection = database.collection(collectionName);
+        const query = { username: username };
+        const options = {};
+        const documents = await collection.find(query, options).toArray();
+        if (documents.length === 0) {
+            console.log("Aucun document trouvé!");
+            return false;
+        }
+        return documents;
+    }
+    catch(error){
+        console.log("Erreur :", error);
+        throw error;
+    }
+}
+
+function getAllReservationClient(username){
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(getAllReservationClient_(username));
+        }, 1000);
+    });
+}
+
+async function verifyReservation(timestampdebut, timestampfin, idmachine){
+    try{
+        var Reservation = await getAllReservation_();
+        var i = 0;
+        for( i=0; i<Reservation.length();i++){
+            if(Reservation[i].idmachine === idmachine){
+                //si la date de début est comprise entre le début et la fin d'une réservation
+                if(timestampdebut >= Reservation[i].timestampdebut && timestampdebut <= Reservation[i].timestampfin){
+                    return false;
+                }
+                //si la date de fin est comprise entre le début et la fin d'une réservation
+                if(timestampfin >= Reservation[i].timestampdebut && timestampfin <= Reservation[i].timestampfin){
+                    return false;
+                }
+
+            }
+        }
+        return true;
+    }
+    catch(error){
+        console.log("Erreur :", error);
+        return false;
+    }
+}
 
 
 
@@ -143,5 +195,7 @@ module.exports = {
     getOneReservation,
     createReservation,
     deleteReservation,
-    modifReservation
+    modifReservation,
+    getAllReservationClient,
+    verifyReservation
 }

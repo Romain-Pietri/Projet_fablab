@@ -18,7 +18,7 @@ async function pingToBDD() {
     const end = Date.now();
     const delay = end - start;
     
-    console.log(`Ping réussi ! Delay : ${delay} ms`);
+    console.log("\x1b[33m%s\x1b[0m",`Ping réussi ! Delay : ${delay} ms  \u26A0\uFE0F`);
   } catch (error) {
     console.error('Erreur lors du ping de la base de données :', error);
   }
@@ -196,11 +196,14 @@ async function deleteClient(username) {
 
         if (result.deletedCount === 1) {
             console.log("Client supprimé avec succès");
+            return true;
         } else {
             console.log("Aucun client trouvé pour la suppression");
+            return false;
         }
     } catch (e) {
         console.log("Error delete Client", e);
+        return false;
     } 
 }
 

@@ -1,16 +1,13 @@
 //cree un projet node classic
 const express = require('express');
 const app = express();
-const http = require('http').Server(app);
+http = require('http').createServer(app);
 const bodyParser = require('body-parser');
 const connect_client = require('./connection_mongodb_Clients.js');
 const connect_stock = require('./connection_mongodb_Stocks.js');
 //const connect_reservation = require('./connection_mongodb_Reservation.js');
 
 const os = require('os');
-
-
-
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -351,6 +348,11 @@ app.post('/modifReservation', (req, res) => {
 );
 app.post('/reduceQuantity',(req,res) =>{
   console.log("reduceQuantity");
+  if(req.body.quantite<=0){
+    res.sendStatus(402);
+    return;
+  }
+
   connect_stock.reduceQuantity(req.body.id, req.body.quantite)
     .then((data) => {
       if (data) {
@@ -369,6 +371,10 @@ app.post('/reduceQuantity',(req,res) =>{
 });
 app.post('/augmenteQuantity',(req,res) =>{
   console.log(req.body);
+  if(req.body.quantite<=0){
+    res.sendStatus(402);
+    return;
+  }
   connect_stock.augmenteQuantity(req.body.id, req.body.quantite)
     .then((data) => {
       if (data) {
@@ -386,7 +392,41 @@ app.post('/augmenteQuantity',(req,res) =>{
 
 }
 );
-
+app.post('/getAllReservationFromClient', (req, res) => {
+  //console.log(req.body);
+  console.log('getAllReservationFromClient')
+  connect_reservation.getAllReservationFromClient(req.body.username)
+    .then((data) => {
+      if (data) {
+        res.send(data);
+      } else {
+        res.sendStatus(401);
+      }
+    }
+    )
+    .catch((error) => {
+      console.log("Erreur :", error);
+      res.status(500).json({ error: 'Erreur lors de la récupération des données' });
+    });
+}
+);
+app.post('/verifyReservation', (req, res) => {
+  //console.log(req.body);
+  connect_reservation.verifyReservation(req.body.timestampdebut, req.body.timestampfin, req.body.idmachine)
+    .then((data) => {
+      if (data) {
+        res.send(data);
+      }
+      else {
+        res.sendStatus(401);
+      }
+    }
+    )
+    .catch((error) => {
+      console.log("Erreur :", error);
+      res.status(500).json({ error: 'Erreur lors de la récupération des données' });
+    });
+});
 
 // Function to retrieve the private IP address
 const getPrivateIPAddress = () => {
