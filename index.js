@@ -76,6 +76,7 @@ app.post('/login', (req, res) => {
 
 app.post('/createAccompt', (req, res) => {
   //console.log(req.body);
+  req.body.is_admin=false;
   connect_client.verifySolo(req.body.username).then((data) => {
     if(data){
       connect_client.createClient(req.body)
@@ -121,6 +122,7 @@ app.post('/deleteAccompt', (req, res) => {
 );
 app.post('/modifAccompt', (req, res) => {
   //console.log(req.body);
+  req.body.is_admin=false;
   connect_client.modifClient(req.body.username, req.body)
     .then((data) => {
       if (data) {
@@ -159,6 +161,7 @@ app.post('/getAllFromClient', (req, res) => {
   console.log("getAllFromClient")
   connect_client.getAllFromClient(req.body.username)
     .then((data) => {
+      data.mdp="AHAH NOPE";
       if (data) {
         res.send(data);
       } else {
