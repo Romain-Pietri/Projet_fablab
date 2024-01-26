@@ -220,7 +220,10 @@ async function getAllClient(){
         //trouve le client a supprimer
         const result = await collection.find(query, options).toArray();
         console.log("Tout les client ont été récupéré avec succès");
-        
+        //met tous les client.mdp a null
+        for(let i = 0; i < result.length; i++){
+            result[i].mdp = null;
+        }      
 
         return result;
     }
