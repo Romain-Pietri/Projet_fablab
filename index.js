@@ -1,26 +1,11 @@
 //cree un projet node classic
 const express = require('express');
 const app = express();
-const fs = require('fs');
-
-const options = {
-  key: fs.readFileSync('key.pem'),
-  cert: fs.readFileSync('cert.pem'),
-  ciphers: 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256',
-  minVersion: 'TLSv1.2', // Version minimale de TLS
-  maxVersion: 'TLSv1.2'  // Version maximale de TLS
-};
-
-const https = require('https');
-const server = https.createServer(options, app);
-
-// app.get('/', (req, res) => {
-//   res.send('Hello World!');
-// });
+http = require('http').createServer(app);
 const bodyParser = require('body-parser');
-const connect_client = require('./connection_mongodb_Clients.js');
-const connect_stock = require('./connection_mongodb_Stocks.js');
-const connect_reservation = require('./connection_mongodb_Reservation.js');
+const connect_client = require('./Bdd/connection_mongodb_Clients.js');
+const connect_stock = require('./Bdd/connection_mongodb_Stocks.js');
+const connect_reservation = require('./Bdd/connection_mongodb_Reservation.js');
 
 const os = require('os');
 
@@ -44,6 +29,8 @@ app.post('/', (req, res) => {
 
 app.post('/login', (req, res) => {
     //console.log(req.body);
+    //affiche login et la timestamp sous format JJ/MM/AAAA HH:MM:SS
+    console.log("login", new Date().toLocaleString());
     connect_client.verifyPassword(req.body.username, req.body.mdp)
       .then((data) => {
         if (data) {
@@ -76,6 +63,7 @@ app.post('/login', (req, res) => {
 
 app.post('/createAccompt', (req, res) => {
   //console.log(req.body);
+  console.log("createAccompt", new Date().toLocaleString())
   req.body.is_admin=false;
   connect_client.verifySolo(req.body.username).then((data) => {
     if(data){
@@ -105,6 +93,7 @@ app.post('/createAccompt', (req, res) => {
 );
 app.post('/deleteAccompt', (req, res) => {
   //console.log(req.body);
+  console.log("deleteAccompt", new Date().toLocaleString())
   connect_client.deleteClient(req.body.username)
     .then((data) => {
       if (data) {
@@ -122,6 +111,7 @@ app.post('/deleteAccompt', (req, res) => {
 );
 app.post('/modifAccompt', (req, res) => {
   //console.log(req.body);
+  console.log("modifAccompt", new Date().toLocaleString())
   req.body.is_admin=false;
   connect_client.modifClient(req.body.username, req.body)
     .then((data) => {
@@ -141,6 +131,7 @@ app.post('/modifAccompt', (req, res) => {
 
 app.post('/getAllClient', (req, res) => {
   //console.log(req.body);
+  console.log("getAllClient", new Date().toLocaleString())
   connect_client.getAllClient()
     .then((data) => {
       if (data) {
@@ -158,10 +149,10 @@ app.post('/getAllClient', (req, res) => {
 );
 app.post('/getAllFromClient', (req, res) => {
   //console.log(req.body);
-  console.log("getAllFromClient")
+  console.log("getAllFromClient", new Date().toLocaleString())
   connect_client.getAllFromClient(req.body.username)
     .then((data) => {
-      data.mdp="AHAH NOPE";
+      data.mdp="Ahaha nope"
       if (data) {
         res.send(data);
       } else {
@@ -178,7 +169,7 @@ app.post('/getAllFromClient', (req, res) => {
 
 app.post('/getAllStock', (req, res) => {
   //console.log(req.body);
-  console.log("getAllStock")
+  console.log("getAllStock", new Date().toLocaleString())
   connect_stock.getAllStock()
     .then((data) => {
       console.log(data)
@@ -199,6 +190,7 @@ app.post('/getAllStock', (req, res) => {
 );
 app.post('/getOneStock', (req, res) => {
   //console.log(req.body);
+  console.log("getOneStock", new Date().toLocaleString())
   connect_stock.getOneStock(req.body.id)
     .then((data) => {
       if (data) {
@@ -216,7 +208,7 @@ app.post('/getOneStock', (req, res) => {
 );
 app.post('/createStock', (req, res) => {
   //console.log(req.body);
-  console.log("createStock")
+  console.log("createStock", new Date().toLocaleString())
   var ob= req.body;
 
   connect_stock.createID(ob.type).then((data) => {
@@ -244,6 +236,7 @@ app.post('/createStock', (req, res) => {
 });
 app.post('/deleteStock', (req, res) => {
   //console.log(req.body);  
+  console.log("deleteStock", new Date().toLocaleString())
   connect_stock.deleteStock(req.body.id)
     .then((data) => {
       if (data) {
@@ -261,6 +254,7 @@ app.post('/deleteStock', (req, res) => {
 );
 app.post('/modifStock', (req, res) => {
   //console.log(req.body);
+  console.log("modifStock", new Date().toLocaleString())
   connect_stock.modifStock(req.body.id, req.body)
     .then((data) => {
       if (data) {
@@ -279,6 +273,7 @@ app.post('/modifStock', (req, res) => {
 
 app.post('/getAllReservation', (req, res) => {
   //console.log(req.body);  
+  console.log("getAllReservation", new Date().toLocaleString())
   connect_reservation.getAllReservation()
     .then((data) => {
       if (data) {
@@ -296,6 +291,7 @@ app.post('/getAllReservation', (req, res) => {
 );
 app.post('/getOneReservation', (req, res) => {
   //console.log(req.body);
+  console.log("getOneReservation", new Date().toLocaleString())
   connect_reservation.getOneReservation(req.body.id)
     .then((data) => {
       if (data) {
@@ -312,7 +308,7 @@ app.post('/getOneReservation', (req, res) => {
 }
 );
 app.post('/createReservation', (req, res) => {
-  console.log("createReservation")
+  console.log("createReservation", new Date().toLocaleString())
   connect_reservation.createReservation(req.body)
     .then((data) => {
       if (data) {
@@ -331,6 +327,7 @@ app.post('/createReservation', (req, res) => {
 );
 app.post('/deleteReservation', (req, res) => {
   //console.log(req.body);
+  console.log("deleteReservation", new Date().toLocaleString())
   connect_reservation.deleteReservation(req.body.id)
     .then((data) => {
       if (data) {
@@ -349,6 +346,7 @@ app.post('/deleteReservation', (req, res) => {
 );
 app.post('/modifReservation', (req, res) => {
   //console.log(req.body);
+  console.log("modifReservation", new Date().toLocaleString())
   connect_reservation.modifReservation(req.body.id, req.body)
     .then((data) => {
       if (data) {
@@ -366,7 +364,7 @@ app.post('/modifReservation', (req, res) => {
 }
 );
 app.post('/reduceQuantity',(req,res) =>{
-  console.log("reduceQuantity");
+  console.log("reduceQuantity", new Date().toLocaleString());
   if(req.body.quantite<=0){
     res.sendStatus(402);
     return;
@@ -389,7 +387,7 @@ app.post('/reduceQuantity',(req,res) =>{
 
 });
 app.post('/augmenteQuantity',(req,res) =>{
-  console.log(req.body);
+  console.log("augmenteQuantity", new Date().toLocaleString());
   if(req.body.quantite<=0){
     res.sendStatus(402);
     return;
@@ -413,7 +411,7 @@ app.post('/augmenteQuantity',(req,res) =>{
 );
 app.post('/getAllReservationFromClient', (req, res) => {
   //console.log(req.body);
-  console.log('getAllReservationFromClient')
+  console.log('getAllReservationFromClient', new Date().toLocaleString())
   connect_reservation.getAllReservationClient(req.body.username)
     .then((data) => {
       if (data) {
@@ -432,7 +430,7 @@ app.post('/getAllReservationFromClient', (req, res) => {
 );
 app.post('/verifyReservation', (req, res) => {
   //console.log(req.body);
-  console.log("verifyReservation")
+  console.log("verifyReservation", new Date().toLocaleString())
   if(req.body.timestampdebut=="" || req.body.timestampfin=="" || req.body.idmachine==""){
     res.sendStatus(402);
   }
@@ -471,18 +469,11 @@ const privateIPAddress = getPrivateIPAddress();
 
 console.log("\x1b[34m%s\x1b[0m",privateIPAddress )
 
-
-// https.listen(443, privateIPAddress,() => {
-//     console.log("\x1b[34m%s\x1b[0m",'Serveur lancé sur le port 8080 \u{1F525}');
-//     //recupere les donnée de admin via getallClient
-//     //recupere la promise d'admin
-//     connect_client.pingToBDD();    
-// });
-
-server.listen(443, () => {
-  console.log('Serveur Express écoutant sur le port 443');
-  connect_client.pingToBDD();
-}).on('error', (e) => {
-  console.error('Erreur au démarrage du serveur:', e);
+port =8080
+http.listen(port, "127.0.0.1",() => {
+    console.log("\x1b[34m%s\x1b[0m",'Serveur lancé sur le port '+port+' \u{1F525}');
+    //recupere les donnée de admin via getallClient
+    //recupere la promise d'admin
+    connect_client.pingToBDD();    
 });
 
